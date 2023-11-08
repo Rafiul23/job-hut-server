@@ -9,8 +9,8 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res)=>{
-    res.send('Job hut server is running');
+app.get('/', (req, res) => {
+  res.send('Job hut server is running');
 })
 
 
@@ -37,23 +37,60 @@ async function run() {
 
     const jobCollection = client.db('jobsDB').collection('jobs');
 
-    app.get('/jobs', async(req, res)=>{
-        const cursor = jobCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
+    app.get('/jobs', async (req, res) => {
+      const cursor = jobCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
     })
 
-    app.get('/job/:id', async(req, res)=>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)};
-        const result = await jobCollection.findOne(query);
-        res.send(result);
+    app.get('/job/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobCollection.findOne(query);
+      res.send(result);
     })
 
-    app.post('/jobs', async(req, res)=>{
-        const newJob = req.body;
-        const result = await jobCollection.insertOne(newJob);
-        res.send(result);
+    app.post('/jobs', async (req, res) => {
+      const newJob = req.body;
+      const result = await jobCollection.insertOne(newJob);
+      res.send(result);
+    })
+
+    app.get('/myjobs/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = jobCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.delete('/job/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    app.put('/job/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedJob = req.body;
+      const job = {
+        $set: {
+          job_banner: updatedJob.job_banner,
+          job_title: updatedJob.job_title,
+          employee_name: updatedJob.employee_name,
+          job_category: updatedJob.job_category,
+          salary_range: updatedJob.salary_range,
+          job_description: updatedJob.job_description,
+          job_posting_date: updatedJob.job_posting_date,
+          application_deadline: updatedJob.application_deadline,
+          job_applicants_number: updatedJob.job_applicants_number
+        }
+      }
+      const result = await jobCollection.updateOne(filter, job, options);
+      res.send(result);
     })
 
   } finally {
@@ -64,6 +101,6 @@ async function run() {
 run().catch(console.dir);
 
 
-app.listen(port, ()=>{
-    console.log(`server is running on port ${port}`);
+app.listen(port, () => {
+  console.log(`server is running on port ${port}`);
 })
