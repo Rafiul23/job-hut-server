@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
@@ -8,12 +10,27 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
   res.send('Job hut server is running');
 })
 
-
+// const verifyToken = async(req, res, next)=>{
+//   const token = req.cookies?.token;
+  
+//   if(!token){
+//     return res.status(401).send({message: 'Unauthorized'})
+//   }
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded)=>{
+//     if(error){
+//       return res.status(401).send({message: 'Not Authorized'})
+//     }
+//     req.user= decoded;
+//     next();
+//   })
+ 
+// }
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wlof2pa.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -36,6 +53,17 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     const jobCollection = client.db('jobsDB').collection('jobs');
+
+    app.post('/jwt', async(req, res)=>{
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+      res
+      .cookie('token', token, {
+        httpOnly: true,
+        secure: false,  
+      })
+      .send({success: true});
+    })
 
     app.get('/jobs', async (req, res) => {
       const cursor = jobCollection.find();
