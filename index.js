@@ -53,6 +53,7 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     const jobCollection = client.db('jobsDB').collection('jobs');
+    const appliedCollection = client.db('appliedDB').collection('appliedJobs');
 
     app.post('/jwt', async(req, res)=>{
       const user = req.body;
@@ -84,6 +85,13 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/appliedjobs', async(req, res)=>{
+      const appliedJob = req.body;
+      const result = await appliedCollection.insertOne(appliedJob);
+      req.send(result);
+    })
+
+    
     app.get('/myjobs/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
