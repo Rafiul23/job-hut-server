@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
  
 // }
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wlof2pa.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://jobHut:wgmIbPcNJOCLgW4Y@cluster0.wlof2pa.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -55,16 +55,7 @@ async function run() {
     const jobCollection = client.db('jobsDB').collection('jobs');
     const appliedCollection = client.db('appliedDB').collection('appliedJobs');
 
-    app.post('/jwt', async(req, res)=>{
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
-      res
-      .cookie('token', token, {
-        httpOnly: true,
-        secure: false,  
-      })
-      .send({success: true});
-    })
+   
 
     app.get('/jobs', async (req, res) => {
       const cursor = jobCollection.find();
